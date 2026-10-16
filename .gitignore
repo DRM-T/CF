@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+results/**/*.tmp.parquet
+# downloaded archives
+archives/
+*.zip
+# temporary / build files
+*.pyc
+.ipynb_checkpoints/
+*.aux
+*.log
+!results/logs/*.log
+*.out
+*.bbl
+*.blg
+*.synctex.gz
+*.tmp
+.DS_Store
+data/cira_cic_dohbrw2020_l2_full.parquet
