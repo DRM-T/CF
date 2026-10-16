@@ -82,23 +82,47 @@ All settings (detector, explainer, refinement, baselines) were selected on valid
 
 ## Main results
 
-500 registered test alerts per dataset (five detector seeds × 100 alerts), one shared reconstructed oracle and budget.
-CSR: share of alerts with a valid counterfactual; the other columns are over valid counterfactuals.
+Test partitions; five detector seeds; 500 alerts registered before explanation per dataset (five seeds × 100). All settings
+were selected on validation data. Every explainer queries the same reconstructed oracle with the same budget (4096 forward
+evaluations per alert). Values are listed as CIC-IDS2018 / DoHBrw-2020 / UNSW-NB15.
 
-| Dataset | Method | CSR | changed features (mean) | L1 (median) | logit margin (median) |
-|---|---|---|---|---|---|
-| CIC-IDS2018 | CANDICE (tuned λ) | 0.908 | 17.46 | 14.84 | 0.46 |
-| | DiCE | 1.000 | 16.38 | 22.20 | 3.20 |
-| | **FlowSCE** | **1.000** | **1.07** | **6.04** | 1.18 |
-| DoHBrw-2020 | CANDICE (tuned λ) | 0.866 | 19.82 | 26.85 | 0.20 |
-| | DiCE | 0.030 | 18.27 | 19.39 | 1.31 |
-| | **FlowSCE** | **1.000** | **1.29** | **17.57** | 1.13 |
-| UNSW-NB15 | CANDICE (tuned λ) | 0.986 | 13.28 | 16.85 | 0.05 |
-| | DiCE | 0.398 | 12.98 | 30.35 | 1.32 |
-| | **FlowSCE** | **0.998** | **1.00** | **6.97** | 1.12 |
+**Detection** (test macro-F1, mean of five seeds; `results/paper/tab_T3_detection.tex`)
 
-Full tables (detection, ablation, coupling, minimizers, bootstrap intervals, runtime) are in `results/SUMMARY.md` and
-`results/paper/`.
+| Model | CIC-IDS2018 | DoHBrw-2020 | UNSW-NB15 |
+|---|---|---|---|
+| **FlowSCE detector** (explained) | **0.9999** | 0.9990 | **0.9926** |
+| Edge-only (no host context) | 0.9991 | 0.9935 | 0.9926 |
+| E-GraphSAGE | 0.9999 | **0.9998** | 0.9654 |
+| CANDICE detector (β-TCVAE + RF) | 0.9996 | 0.9703 | 0.9911 |
+
+**Generators** (one counterfactual per alert; `tab_T6_generators.tex`). CSR: share of alerts with a valid counterfactual;
+the other columns are over valid counterfactuals.
+
+| Method | CSR | changed features (mean) | L1 (median) | logit margin (median) |
+|---|---|---|---|---|
+| CANDICE (tuned λ) | 0.908 / 0.866 / 0.986 | 17.46 / 19.82 / 13.28 | 14.84 / 26.85 / 16.84 | 0.46 / 0.20 / 0.05 |
+| DiCE (dice-ml) | 1.000 / 0.030 / 0.398 | 16.38 / 18.27 / 12.98 | 22.20 / 19.38 / 30.35 | 3.20 / 1.31 / 1.32 |
+| FlowSCE search only (A0) | 1.000 / 1.000 / 0.998 | 18.53 / 19.83 / 13.37 | 20.74 / 38.69 / 19.52 | 1.45 / 0.78 / 0.23 |
+| **FlowSCE** (search + refinement) | **1.000 / 1.000 / 0.998** | **1.07 / 1.29 / 1.00** | **6.04 / 17.57 / 6.97** | 1.18 / 1.13 / 1.12 |
+
+**Minimizers on the same search outputs** (A0 seeds; `tab_T7_minimizers.tex`, paired intervals in `tab_A1_bootstrap.tex`).
+Oracle calls are those of the minimizer itself (median).
+
+| Minimizer | changed features (mean) | L1 (median) | logit margin (median) | oracle calls |
+|---|---|---|---|---|
+| none (search output) | 18.53 / 19.83 / 13.37 | 20.74 / 38.69 / 19.52 | 1.45 / 0.78 / 0.23 | 0 |
+| DiCE post-hoc sparsity | 17.18 / 19.64 / 12.66 | 18.82 / 37.94 / 19.10 | 0.41 / 0.56 / 0.15 | 12 / 1 / 6 |
+| Restoration (one pass) | 6.77 / 10.03 / 5.36 | 10.69 / 26.15 / 10.89 | 0.28 / 0.28 / 0.20 | 19 / 20 / 14 |
+| RHC | 1.06 / 1.29 / 1.01 | 11.94 / 28.14 / 29.21 | 3.16 / 2.48 / 2.33 | 121 / 149 / 115 |
+| LBS-adapted | 1.05 / 1.37 / 1.02 | 8.09 / 21.09 / 8.24 | 1.34 / 1.01 / 0.72 | 121 / 149 / 115 |
+| **FlowSCE refinement** | 1.07 / 1.29 / 1.00 | **6.04 / 17.57 / 6.97** | 1.18 / 1.13 / 1.12 | 1111 / 1543 / 825 |
+
+FlowSCE and LBS-adapted reach about one changed feature; FlowSCE stays closer to the alert on CIC-IDS2018 and DoHBrw-2020,
+at about ten times the oracle calls. At a matched cost (refinement without probes, `tab_A9_ablation.tex`) and within the
+1st–99th training percentiles (`tab_A11_constrained.tex`), LBS-adapted is as sparse or sparser. Stale host summaries make
+a counterfactual spuriously valid in 0 of 2776 nominal successes on alerts with coupling ≤ 0.01, but in 13.8% of those on alerts with coupling above 0.5 (`tab_A10_coupling.tex`).
+
+Full tables (ablation, coupling, bootstrap intervals, plausibility, runtime) are in `results/SUMMARY.md` and `results/paper/`.
 
 ## License
 
